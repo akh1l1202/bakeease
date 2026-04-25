@@ -459,7 +459,7 @@ function OrdersView() {
                   <td className="p-3 text-muted-foreground">{o.address}</td>
                   <td className="p-3 font-bold text-primary">₹{o.total}</td>
                   <td className="p-3">
-                    <Select value={o.status} onValueChange={(v) => updateStatus(o.id, v as OrderStatus)}>
+                    <Select value={o.status} onValueChange={(v) => updateStatus(o.uuid, o.id, v as OrderStatus)}>
                       <SelectTrigger className="w-[170px] h-8 text-xs"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="pending">Pending</SelectItem>
