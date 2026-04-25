@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   LayoutDashboard,
   Box,
@@ -26,7 +27,16 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/lib/auth";
-import { PRODUCTS, SAMPLE_ORDERS, REVENUE_LAST_7_DAYS, INGREDIENTS } from "@/lib/data";
+import { REVENUE_LAST_7_DAYS, INGREDIENTS } from "@/lib/data";
+import {
+  fetchProducts,
+  fetchAllOrders,
+  setProductAvailable,
+  deleteProduct,
+  createProduct,
+  updateOrderStatus,
+  type AdminOrder,
+} from "@/lib/products";
 import type { Product, OrderStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
