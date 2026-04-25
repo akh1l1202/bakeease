@@ -48,6 +48,12 @@ export const Route = createRootRoute({
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "BakeEase — Mumbai's Freshest Online Bakery" },
+      { name: "description", content: "BakeEase is an online bakery ordering app for Mumbai, India." },
+      { property: "og:description", content: "BakeEase is an online bakery ordering app for Mumbai, India." },
+      { name: "twitter:description", content: "BakeEase is an online bakery ordering app for Mumbai, India." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/692b6588-013a-4acd-a15b-2bce59e6173b/id-preview-6d316173--8961ffb4-ec67-458d-a9de-13a63d7789a3.lovable.app-1777108593665.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/692b6588-013a-4acd-a15b-2bce59e6173b/id-preview-6d316173--8961ffb4-ec67-458d-a9de-13a63d7789a3.lovable.app-1777108593665.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
