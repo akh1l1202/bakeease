@@ -16,8 +16,6 @@ interface AuthContextValue {
   logout: () => Promise<void>;
 }
 
-const ADMIN_EMAIL = "admin@bakeease.com";
-
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 async function buildAppUser(supaUser: User | null): Promise<AppUser | null> {
@@ -139,4 +137,4 @@ export function useAuth() {
   return ctx;
 }
 
-export { ADMIN_EMAIL };
+
