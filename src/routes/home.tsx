@@ -1,6 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { HomePage } from "../pages/HomePage";
 
+function HomeRoute() {
+  return <HomePage />;
+}
+
 export const Route = createFileRoute("/home")({
   head: () => ({
     meta: [
@@ -12,5 +16,5 @@ export const Route = createFileRoute("/home")({
       },
     ],
   }),
-  component: HomePage,
+  component: HomeRoute,
 });
