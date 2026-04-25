@@ -259,7 +259,7 @@ export function CheckoutPage() {
                 </div>
               </div>
 
-              <Button onClick={placeOrder} className="mt-5 w-full" size="lg" disabled={placing}>
+              <Button onClick={placeOrderHandler} className="mt-5 w-full" size="lg" disabled={placing}>
                 {placing ? "Placing order..." : `Place Order — ₹${cart.total}`}
               </Button>
             </div>
