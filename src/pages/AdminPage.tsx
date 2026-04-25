@@ -130,13 +130,23 @@ export function AdminPage() {
 }
 
 function DashboardView() {
+  const { data: products = [] } = useQuery({ queryKey: ["products"], queryFn: fetchProducts });
+  const { data: orders = [] } = useQuery({ queryKey: ["orders", "all"], queryFn: fetchAllOrders });
+
+  const todayStr = new Date().toDateString();
+  const todayOrders = orders.filter((o) => new Date(o.date).toDateString() === todayStr);
+  const revenueToday = todayOrders.reduce((s, o) => s + o.total, 0);
+  const pendingCount = orders.filter((o) => o.status === "pending" || o.status === "baking").length;
+  const lowStock = products.filter((p) => (p.stock ?? 0) < 10).length;
+
   const stats = [
-    { label: "Revenue Today", value: "₹24,580", Icon: IndianRupee, trend: "+12%" },
-    { label: "Orders Today", value: "47", Icon: ShoppingCart, trend: "+8%" },
-    { label: "Pending Orders", value: "9", Icon: ClockAlert, trend: "-3" },
-    { label: "Low Stock Items", value: "3", Icon: AlertTriangle, trend: "Action" },
+    { label: "Revenue Today", value: `₹${revenueToday.toLocaleString("en-IN")}`, Icon: IndianRupee, trend: "+12%" },
+    { label: "Orders Today", value: String(todayOrders.length), Icon: ShoppingCart, trend: "+8%" },
+    { label: "Pending Orders", value: String(pendingCount), Icon: ClockAlert, trend: "Action" },
+    { label: "Low Stock Items", value: String(lowStock), Icon: AlertTriangle, trend: "Action" },
   ];
-  const bestSellers = PRODUCTS.filter((p) => p.bestSeller).slice(0, 5);
+  const bestSellers = products.filter((p) => p.bestSeller).slice(0, 5);
+  const recentOrders = orders.slice(0, 5);
 
   return (
     <div className="space-y-6">
@@ -220,10 +230,12 @@ function DashboardView() {
               </tr>
             </thead>
             <tbody>
-              {SAMPLE_ORDERS.map((o) => (
+              {recentOrders.length === 0 ? (
+                <tr><td colSpan={4} className="p-6 text-center text-muted-foreground">No orders yet.</td></tr>
+              ) : recentOrders.map((o) => (
                 <tr key={o.id} className="border-b border-border last:border-0">
                   <td className="p-3 font-medium">#{o.id}</td>
-                  <td className="p-3 text-muted-foreground">{o.date}</td>
+                  <td className="p-3 text-muted-foreground">{new Date(o.date).toLocaleDateString("en-IN")}</td>
                   <td className="p-3 font-bold text-primary">₹{o.total}</td>
                   <td className="p-3">
                     <span className="rounded-full bg-secondary px-2 py-0.5 text-xs">{o.status}</span>
@@ -239,13 +251,33 @@ function DashboardView() {
 }
 
 function ProductsView() {
-  const [list, setList] = useState<Product[]>(PRODUCTS);
+  const queryClient = useQueryClient();
+  const { data: list = [] } = useQuery({ queryKey: ["products"], queryFn: fetchProducts });
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const filtered = list.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()));
 
-  const toggleAvail = (id: string) =>
-    setList((prev) => prev.map((p) => (p.id === id ? { ...p, isAvailable: !p.isAvailable } : p)));
+  const refresh = () => queryClient.invalidateQueries({ queryKey: ["products"] });
+
+  const toggleAvail = async (p: Product) => {
+    try {
+      await setProductAvailable(p.id, !p.isAvailable);
+      refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Update failed");
+    }
+  };
+
+  const removeProduct = async (id: string) => {
+    if (!confirm("Delete this product?")) return;
+    try {
+      await deleteProduct(id);
+      toast.success("Product deleted");
+      refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Delete failed");
+    }
+  };
 
   return (
     <div className="space-y-4">
