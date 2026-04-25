@@ -14,6 +14,147 @@ export type Database = {
   }
   public: {
     Tables: {
+      order_items: {
+        Row: {
+          created_at: string
+          id: string
+          order_id: string
+          product_id: string | null
+          product_name: string
+          quantity: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_id: string
+          product_id?: string | null
+          product_name: string
+          quantity: number
+          unit_price: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_id?: string
+          product_id?: string | null
+          product_name?: string
+          quantity?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          address: string
+          created_at: string
+          delivery_type: Database["public"]["Enums"]["delivery_type"]
+          id: string
+          notes: string | null
+          order_number: string
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          status: Database["public"]["Enums"]["order_status"]
+          total: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address: string
+          created_at?: string
+          delivery_type: Database["public"]["Enums"]["delivery_type"]
+          id?: string
+          notes?: string | null
+          order_number?: string
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          status?: Database["public"]["Enums"]["order_status"]
+          total: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string
+          created_at?: string
+          delivery_type?: Database["public"]["Enums"]["delivery_type"]
+          id?: string
+          notes?: string | null
+          order_number?: string
+          payment_method?: Database["public"]["Enums"]["payment_method"]
+          status?: Database["public"]["Enums"]["order_status"]
+          total?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          best_seller: boolean
+          category: Database["public"]["Enums"]["product_category"]
+          created_at: string
+          description: string
+          flavour: Database["public"]["Enums"]["product_flavour"]
+          id: string
+          image: string
+          is_available: boolean
+          is_veg: boolean
+          name: string
+          occasions: string[]
+          price: number
+          rating: number
+          stock: number
+          updated_at: string
+        }
+        Insert: {
+          best_seller?: boolean
+          category: Database["public"]["Enums"]["product_category"]
+          created_at?: string
+          description?: string
+          flavour: Database["public"]["Enums"]["product_flavour"]
+          id?: string
+          image?: string
+          is_available?: boolean
+          is_veg?: boolean
+          name: string
+          occasions?: string[]
+          price: number
+          rating?: number
+          stock?: number
+          updated_at?: string
+        }
+        Update: {
+          best_seller?: boolean
+          category?: Database["public"]["Enums"]["product_category"]
+          created_at?: string
+          description?: string
+          flavour?: Database["public"]["Enums"]["product_flavour"]
+          id?: string
+          image?: string
+          is_available?: boolean
+          is_veg?: boolean
+          name?: string
+          occasions?: string[]
+          price?: number
+          rating?: number
+          stock?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -77,6 +218,21 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "customer"
+      delivery_type: "delivery" | "pickup"
+      order_status:
+        | "pending"
+        | "baking"
+        | "out_for_delivery"
+        | "delivered"
+        | "cancelled"
+      payment_method: "upi" | "cod"
+      product_category: "cakes" | "cupcakes" | "pastries" | "bread" | "custom"
+      product_flavour:
+        | "chocolate"
+        | "vanilla"
+        | "redVelvet"
+        | "mango"
+        | "butterscotch"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -205,6 +361,23 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "customer"],
+      delivery_type: ["delivery", "pickup"],
+      order_status: [
+        "pending",
+        "baking",
+        "out_for_delivery",
+        "delivered",
+        "cancelled",
+      ],
+      payment_method: ["upi", "cod"],
+      product_category: ["cakes", "cupcakes", "pastries", "bread", "custom"],
+      product_flavour: [
+        "chocolate",
+        "vanilla",
+        "redVelvet",
+        "mango",
+        "butterscotch",
+      ],
     },
   },
 } as const

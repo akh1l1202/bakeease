@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Search, SlidersHorizontal, Grid3x3, List, X } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -16,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { PRODUCTS } from "@/lib/data";
+import { fetchProducts } from "@/lib/products";
 import type { Category, Flavour, Occasion } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -57,7 +58,11 @@ export function CataloguePage() {
   const [sort, setSort] = useState<Sort>("popular");
   const [view, setView] = useState<"grid" | "list">("grid");
   const [drawer, setDrawer] = useState(false);
-  const [loading, setLoading] = useState(true);
+
+  const { data: products = [], isLoading: loading } = useQuery({
+    queryKey: ["products"],
+    queryFn: fetchProducts,
+  });
 
   // debounce search
   useEffect(() => {
@@ -65,17 +70,11 @@ export function CataloguePage() {
     return () => clearTimeout(t);
   }, [searchInput]);
 
-  // fake initial loading
-  useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 500);
-    return () => clearTimeout(t);
-  }, []);
-
   const toggle = <T,>(arr: T[], v: T, set: (a: T[]) => void) =>
     set(arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
 
   const results = useMemo(() => {
-    let list = PRODUCTS.filter((p) => p.price <= priceMax);
+    let list = products.filter((p) => p.price <= priceMax);
     if (search.trim())
       list = list.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()));
     if (cats.length) list = list.filter((p) => cats.includes(p.category));
@@ -89,7 +88,7 @@ export function CataloguePage() {
       default: list = [...list].sort((a, b) => b.rating - a.rating);
     }
     return list;
-  }, [search, cats, occs, flavs, priceMax, highRated, sort]);
+  }, [products, search, cats, occs, flavs, priceMax, highRated, sort]);
 
   const clearAll = () => {
     setCats([]);
@@ -181,7 +180,7 @@ export function CataloguePage() {
         <header className="mb-6">
           <h1 className="font-display text-4xl font-bold">Our Menu</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Browse {PRODUCTS.length} freshly baked products from our Bandra kitchen.
+            Browse {products.length} freshly baked products from our Bandra kitchen.
           </p>
         </header>
 

@@ -1,11 +1,13 @@
 import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { Copy, Gamepad2, ArrowRight, Sparkles, Star, Quote } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ProductCard } from "@/components/ProductCard";
+import { ProductCardSkeleton } from "@/components/LoadingSkeleton";
 import { Button } from "@/components/ui/button";
-import { PRODUCTS } from "@/lib/data";
+import { fetchProducts } from "@/lib/products";
 import type { Category } from "@/lib/types";
 import heroImg from "@/assets/hero-bakery.jpg";
 import { toast } from "sonner";
@@ -43,13 +45,17 @@ const TESTIMONIALS = [
 
 export function HomePage() {
   const [pill, setPill] = useState<Category | "all">("all");
+  const { data: products = [], isLoading } = useQuery({
+    queryKey: ["products"],
+    queryFn: fetchProducts,
+  });
 
   const featured = useMemo(
-    () => (pill === "all" ? PRODUCTS : PRODUCTS.filter((p) => p.category === pill)).slice(0, 8),
-    [pill]
+    () => (pill === "all" ? products : products.filter((p) => p.category === pill)).slice(0, 8),
+    [pill, products]
   );
 
-  const bestSellers = useMemo(() => PRODUCTS.filter((p) => p.bestSeller), []);
+  const bestSellers = useMemo(() => products.filter((p) => p.bestSeller), [products]);
 
   return (
     <>
@@ -144,9 +150,9 @@ export function HomePage() {
           </Link>
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {featured.map((p) => (
-            <ProductCard key={p.id} product={p} />
-          ))}
+          {isLoading
+            ? Array.from({ length: 4 }).map((_, i) => <ProductCardSkeleton key={i} />)
+            : featured.map((p) => <ProductCard key={p.id} product={p} />)}
         </div>
       </section>
 
@@ -176,9 +182,9 @@ export function HomePage() {
       <section className="mx-auto mt-12 max-w-7xl px-4 md:px-6">
         <h2 className="mb-6 font-display text-3xl font-bold md:text-4xl">Best Sellers</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {bestSellers.map((p) => (
-            <ProductCard key={p.id} product={p} />
-          ))}
+          {isLoading
+            ? Array.from({ length: 4 }).map((_, i) => <ProductCardSkeleton key={i} />)
+            : bestSellers.map((p) => <ProductCard key={p.id} product={p} />)}
         </div>
       </section>
 

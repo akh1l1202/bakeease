@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import {
   Package,
   MapPin,
@@ -18,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth";
-import { SAMPLE_ORDERS } from "@/lib/data";
+import { fetchMyOrders } from "@/lib/products";
 import type { Order, OrderStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -58,9 +59,15 @@ export function DashboardPage() {
     if (!isAuthenticated) navigate({ to: "/login" });
   }, [isAuthenticated, navigate]);
 
+  const { data: allOrders = [], isLoading } = useQuery({
+    queryKey: ["orders", "mine"],
+    queryFn: fetchMyOrders,
+    enabled: isAuthenticated,
+  });
+
   if (!user) return null;
 
-  const orders = SAMPLE_ORDERS.filter((o) => {
+  const orders = allOrders.filter((o) => {
     if (tab === "all") return true;
     if (tab === "active") return o.status === "pending" || o.status === "baking" || o.status === "out_for_delivery";
     if (tab === "completed") return o.status === "delivered";
@@ -134,9 +141,16 @@ export function DashboardPage() {
                   ))}
                 </div>
                 <div className="space-y-4">
-                  {orders.length === 0 ? (
+                  {isLoading ? (
+                    <div className="rounded-xl border-2 border-dashed border-border bg-card p-10 text-center">
+                      <p className="text-muted-foreground">Loading your orders…</p>
+                    </div>
+                  ) : orders.length === 0 ? (
                     <div className="rounded-xl border-2 border-dashed border-border bg-card p-10 text-center">
                       <p className="text-muted-foreground">No orders here yet.</p>
+                      <Link to="/catalogue" className="mt-3 inline-block">
+                        <Button variant="outline" size="sm">Browse menu</Button>
+                      </Link>
                     </div>
                   ) : (
                     orders.map((o) => <OrderCard key={o.id} order={o} />)
