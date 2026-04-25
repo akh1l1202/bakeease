@@ -8,8 +8,6 @@ import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-const ADMIN_EMAIL = "admin@bakeease.com";
-
 type Tab = "login" | "register";
 
 function strength(pw: string) {
@@ -69,8 +67,9 @@ export function LoginPage() {
     try {
       await login(email, password);
       toast.success("Welcome back!");
-      const isAdmin = email.toLowerCase() === ADMIN_EMAIL;
-      navigate({ to: isAdmin ? "/admin" : "/home" });
+      // Always navigate to /home — admin users will see admin links in the navbar,
+      // and the AdminPage itself enforces role-based access via the auth context.
+      navigate({ to: "/home" });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Login failed");
     } finally {
@@ -204,9 +203,6 @@ export function LoginPage() {
                 Continue with Google
               </Button>
 
-              <p className="pt-1 text-center text-xs text-muted-foreground">
-                Tip: sign up with <code className="rounded bg-secondary px-1">admin@bakeease.com</code> for admin access
-              </p>
               <Link to="/home" className="block text-center text-sm text-primary hover:underline">
                 Browse as guest →
               </Link>
