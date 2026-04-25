@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { Trash2, Tag, ShoppingBag, CheckCircle2 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -9,13 +10,17 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useCart, DELIVERY_FEE } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
+import { placeOrder } from "@/lib/products";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export function CheckoutPage() {
   const cart = useCart();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [coupon, setCoupon] = useState("");
   const [delivery, setDelivery] = useState<"delivery" | "pickup">("delivery");
   const [pay, setPay] = useState<"upi" | "cod">("upi");
@@ -65,8 +70,8 @@ export function CheckoutPage() {
     );
   }
 
-  const placeOrder = async () => {
-    if (!isAuthenticated) {
+  const placeOrderHandler = async () => {
+    if (!isAuthenticated || !user) {
       toast.error("Please log in to place an order");
       navigate({ to: "/login" });
       return;
@@ -76,10 +81,29 @@ export function CheckoutPage() {
       return;
     }
     setPlacing(true);
-    await new Promise((r) => setTimeout(r, 900));
-    setPlacing(false);
-    setDone(true);
-    cart.clear();
+    try {
+      const orderNumber = await placeOrder({
+        userId: user.id,
+        items: cart.items.map((it) => ({
+          productId: UUID_RE.test(it.product.id) ? it.product.id : "",
+          productName: it.product.name,
+          quantity: it.quantity,
+          unitPrice: it.product.price,
+        })).map((it) => ({ ...it, productId: it.productId || crypto.randomUUID() })),
+        total: cart.total,
+        paymentMethod: pay,
+        deliveryType: delivery,
+        address: delivery === "pickup" ? "Pickup at Bandra store" : address,
+      });
+      toast.success(`Order ${orderNumber} placed!`);
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      setDone(true);
+      cart.clear();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not place order");
+    } finally {
+      setPlacing(false);
+    }
   };
 
   const applyCoupon = () => {
