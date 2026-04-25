@@ -407,9 +407,7 @@ function AddProductDrawer({ onClose, onSaved }: { onClose: () => void; onSaved: 
     </div>
   );
 }
-    </div>
-  );
-}
+
 
 function OrdersView() {
   const queryClient = useQueryClient();
