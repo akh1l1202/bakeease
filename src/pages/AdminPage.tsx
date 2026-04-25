@@ -315,11 +315,10 @@ function ProductsView() {
                   <td className="p-3 capitalize text-muted-foreground">{p.category}</td>
                   <td className="p-3 font-bold text-primary">₹{p.price}</td>
                   <td className="p-3">
-                    <Switch checked={p.isAvailable} onCheckedChange={() => toggleAvail(p.id)} />
+                    <Switch checked={p.isAvailable} onCheckedChange={() => toggleAvail(p)} />
                   </td>
                   <td className="p-3 text-right">
-                    <Button variant="ghost" size="icon"><Edit className="size-4" /></Button>
-                    <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive"><Trash2 className="size-4" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => removeProduct(p.id)} className="text-destructive hover:text-destructive"><Trash2 className="size-4" /></Button>
                   </td>
                 </tr>
               ))}
@@ -328,48 +327,105 @@ function ProductsView() {
         </div>
       </div>
 
-      {open && (
-        <div className="fixed inset-0 z-50 flex justify-end">
-          <div className="absolute inset-0 bg-ink/60" onClick={() => setOpen(false)} />
-          <div className="relative h-full w-full max-w-md overflow-y-auto bg-background p-6 shadow-warm-lg">
-            <div className="flex items-center justify-between">
-              <h2 className="font-display text-xl font-bold">Add Product</h2>
-              <button onClick={() => setOpen(false)} className="grid size-9 place-items-center rounded-full bg-secondary"><X className="size-4" /></button>
-            </div>
-            <form className="mt-6 space-y-4" onSubmit={(e) => { e.preventDefault(); toast.success("Product added"); setOpen(false); }}>
-              <div><Label>Name</Label><Input className="mt-1" required /></div>
-              <div><Label>Category</Label>
-                <Select><SelectTrigger className="mt-1"><SelectValue placeholder="Select" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="cakes">Cakes</SelectItem>
-                    <SelectItem value="cupcakes">Cupcakes</SelectItem>
-                    <SelectItem value="pastries">Pastries</SelectItem>
-                    <SelectItem value="bread">Bread</SelectItem>
-                    <SelectItem value="custom">Custom</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div><Label>Price (₹)</Label><Input type="number" className="mt-1" required /></div>
-              <div><Label>Description</Label><Input className="mt-1" /></div>
-              <div><Label>Image</Label><Input type="file" accept="image/*" className="mt-1" /></div>
-              <Button type="submit" className="w-full" size="lg">Save Product</Button>
-            </form>
-          </div>
+      {open && <AddProductDrawer onClose={() => setOpen(false)} onSaved={refresh} />}
+    </div>
+  );
+}
+
+function AddProductDrawer({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
+  const [name, setName] = useState("");
+  const [category, setCategory] = useState<Product["category"]>("cakes");
+  const [flavour, setFlavour] = useState<Product["flavour"]>("vanilla");
+  const [price, setPrice] = useState("");
+  const [stock, setStock] = useState("10");
+  const [description, setDescription] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name || !price) return toast.error("Name and price are required");
+    setSaving(true);
+    try {
+      await createProduct({
+        name,
+        description,
+        price: Number(price),
+        stock: Number(stock) || 0,
+        category,
+        flavour,
+      });
+      toast.success("Product added");
+      onSaved();
+      onClose();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Save failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end">
+      <div className="absolute inset-0 bg-ink/60" onClick={onClose} />
+      <div className="relative h-full w-full max-w-md overflow-y-auto bg-background p-6 shadow-warm-lg">
+        <div className="flex items-center justify-between">
+          <h2 className="font-display text-xl font-bold">Add Product</h2>
+          <button onClick={onClose} className="grid size-9 place-items-center rounded-full bg-secondary"><X className="size-4" /></button>
         </div>
-      )}
+        <form className="mt-6 space-y-4" onSubmit={submit}>
+          <div><Label>Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} className="mt-1" required /></div>
+          <div><Label>Category</Label>
+            <Select value={category} onValueChange={(v) => setCategory(v as Product["category"])}>
+              <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="cakes">Cakes</SelectItem>
+                <SelectItem value="cupcakes">Cupcakes</SelectItem>
+                <SelectItem value="pastries">Pastries</SelectItem>
+                <SelectItem value="bread">Bread</SelectItem>
+                <SelectItem value="custom">Custom</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div><Label>Flavour</Label>
+            <Select value={flavour} onValueChange={(v) => setFlavour(v as Product["flavour"])}>
+              <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="chocolate">Chocolate</SelectItem>
+                <SelectItem value="vanilla">Vanilla</SelectItem>
+                <SelectItem value="redVelvet">Red Velvet</SelectItem>
+                <SelectItem value="mango">Mango</SelectItem>
+                <SelectItem value="butterscotch">Butterscotch</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div><Label>Price (₹)</Label><Input type="number" value={price} onChange={(e) => setPrice(e.target.value)} className="mt-1" required /></div>
+          <div><Label>Stock</Label><Input type="number" value={stock} onChange={(e) => setStock(e.target.value)} className="mt-1" /></div>
+          <div><Label>Description</Label><Input value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1" /></div>
+          <Button type="submit" className="w-full" size="lg" disabled={saving}>{saving ? "Saving…" : "Save Product"}</Button>
+        </form>
+      </div>
+    </div>
+  );
+}
     </div>
   );
 }
 
 function OrdersView() {
-  const [orders, setOrders] = useState(SAMPLE_ORDERS);
+  const queryClient = useQueryClient();
+  const { data: orders = [] } = useQuery({ queryKey: ["orders", "all"], queryFn: fetchAllOrders });
   const [filter, setFilter] = useState<OrderStatus | "all">("all");
 
-  const list = orders.filter((o) => filter === "all" || o.status === filter);
+  const list: AdminOrder[] = orders.filter((o) => filter === "all" || o.status === filter);
 
-  const updateStatus = (id: string, status: OrderStatus) => {
-    setOrders((p) => p.map((o) => (o.id === id ? { ...o, status } : o)));
-    toast.success(`Order #${id} → ${status}`);
+  const updateStatus = async (uuid: string, displayId: string, status: OrderStatus) => {
+    try {
+      await updateOrderStatus(uuid, status);
+      toast.success(`Order #${displayId} → ${status}`);
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Update failed");
+    }
   };
 
   return (
