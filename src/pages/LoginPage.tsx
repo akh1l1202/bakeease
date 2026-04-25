@@ -8,6 +8,8 @@ import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
+const ADMIN_EMAIL = "admin@bakeease.com";
+
 type Tab = "login" | "register";
 
 function strength(pw: string) {
@@ -22,7 +24,7 @@ function strength(pw: string) {
 export function LoginPage() {
   const [tab, setTab] = useState<Tab>("login");
   const navigate = useNavigate();
-  const { login, register } = useAuth();
+  const { login, register, loginWithGoogle } = useAuth();
 
   // login state
   const [email, setEmail] = useState("");
@@ -67,12 +69,20 @@ export function LoginPage() {
     try {
       await login(email, password);
       toast.success("Welcome back!");
-      const isAdmin = email.toLowerCase() === "admin@bakeease.com";
+      const isAdmin = email.toLowerCase() === ADMIN_EMAIL;
       navigate({ to: isAdmin ? "/admin" : "/home" });
-    } catch {
-      toast.error("Login failed");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Login failed");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogle = async () => {
+    try {
+      await loginWithGoogle();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Google sign-in failed");
     }
   };
 
@@ -82,10 +92,10 @@ export function LoginPage() {
     setLoading(true);
     try {
       await register({ fullName: rName, email: rEmail, phone: rPhone, password: rPw });
-      toast.success("Account created!");
+      toast.success("Account created! Check your email to confirm.");
       navigate({ to: "/home" });
-    } catch {
-      toast.error("Registration failed");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Registration failed");
     } finally {
       setLoading(false);
     }
