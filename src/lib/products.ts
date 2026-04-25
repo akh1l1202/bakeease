@@ -187,7 +187,7 @@ export async function updateOrderStatus(uuid: string, status: OrderStatus) {
 
 export interface PlaceOrderInput {
   userId: string;
-  items: { productId: string; productName: string; quantity: number; unitPrice: number }[];
+  items: { productId: string | null; productName: string; quantity: number; unitPrice: number }[];
   total: number;
   paymentMethod: "upi" | "cod";
   deliveryType: "delivery" | "pickup";

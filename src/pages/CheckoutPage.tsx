@@ -85,11 +85,11 @@ export function CheckoutPage() {
       const orderNumber = await placeOrder({
         userId: user.id,
         items: cart.items.map((it) => ({
-          productId: UUID_RE.test(it.product.id) ? it.product.id : "",
+          productId: UUID_RE.test(it.product.id) ? it.product.id : null,
           productName: it.product.name,
           quantity: it.quantity,
           unitPrice: it.product.price,
-        })).map((it) => ({ ...it, productId: it.productId || crypto.randomUUID() })),
+        })),
         total: cart.total,
         paymentMethod: pay,
         deliveryType: delivery,
